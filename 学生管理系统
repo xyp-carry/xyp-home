@@ -1,0 +1,218 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+typedef struct StuScore {
+	int stuID;
+	char stuName[10];
+	int yuwen;
+	int shuxue;
+	int yingyu;
+} STUSCORE;
+typedef struct StuScoreNode {
+	STUSCORE stu;
+	struct StuScoreNode *NEXT;
+}  SSN, *SSNLINK;
+
+//创建学生信息的结构体
+STUSCORE createStuScore()
+{
+	STUSCORE stu;
+	printf("请输入学生的学号:\n");
+	scanf_s("%d", &stu.stuID);
+	if (stu.stuID == -1) return stu;
+	scanf_s("请输入学生的姓名:\n");
+	scanf_s("%9s", stu.stuName);
+	printf("请输入学生的语文成绩:\n");
+	scanf_s("%d", &stu.yuwen);
+	printf("请输入学生的数学成绩:\n");
+	scanf_s("%d", &stu.shuxue);
+	printf("请输入学生的英语成绩:\n");
+	scanf_s("%d", &stu.yingyu);
+	return stu;
+}
+
+//创建一个学生信息节点
+SSNLINK addStuScoreNode()
+{
+	SSNLINK assn;
+	assn = (SSNLINK)malloc(sizeof(SSN));
+	assn->stu = createStuScore();
+	assn->NEXT = NULL;
+	return assn;
+}
+
+//将一个节点添加到列表中去，返回列表的头指针
+SSNLINK addToList(SSNLINK * list, SSNLINK stunode)
+{
+	stunode->NEXT = *list;
+	*list = stunode;
+	return *list;
+}
+
+void showOneInfo1(STUSCORE ss)
+{
+	printf("学号:%d\n姓名：%s\n语文：%d\n数学:%d\n英语：%d\n", ss.stuID, ss.stuName, ss.yuwen, ss.shuxue, ss.yingyu);
+
+}
+
+void showOneInfo2(STUSCORE ss)
+{
+	printf("%8d%8s%8d%8d%8d\n", ss.stuID, ss.stuName, ss.yuwen, ss.shuxue, ss.yingyu);
+}
+
+void showAllInfo(SSNLINK list)
+{
+	SSNLINK  p;
+	p = list;
+	printf("%8s%8s%8s%8s%8s\n", "学号", "姓名", "语文", "数学", "英语");
+	while (p != NULL)
+	{
+		showOneInfo2((*p).stu);
+		p = p->NEXT;
+	}
+	getchar(); getchar();
+}
+
+/* 查询  */
+SSNLINK searchInfo(SSNLINK  head)
+{
+	int sno;
+	SSNLINK p;
+	printf("请输入要选择的学号：\n");
+	scanf_s("%d", &sno);
+	p = head;
+	while (p != NULL)
+	{
+		if (p->stu.stuID == sno)
+			break;
+		p = p->NEXT;
+	}
+	if (p == NULL)
+		printf("查无此人！");
+	else
+		showOneInfo1(p->stu);
+	getchar(); getchar();
+	return p;
+}
+
+/* 修改  */
+void modifyInfo(SSNLINK  head)
+{
+	SSNLINK p;
+	p = searchInfo(head);
+	if (p == NULL)
+	{
+		getchar(); getchar();
+		return;
+	}
+	printf("请输入新的学生成绩信息：\n");
+	p->stu = createStuScore();
+	printf("信息修改成功！");
+	getchar(); getchar();
+}
+
+/* 删除 */
+void  deleteInfo(SSNLINK * head)
+{
+	SSNLINK p, q;//p是要删除的节点指针，q是p节点的上一个节点的指针
+	int choice;
+	p = searchInfo(*head);
+	if (p == NULL)
+	{
+		getchar(); getchar();
+		return;
+	}
+	printf("您确定要删除该信息吗？(1删除/0取消)\n");
+	scanf_s("%d", &choice);
+	if (choice == 0)
+		return;
+	//真删除节点
+	if (p == *head)//删除头节点
+	{
+		*head = (*head)->NEXT;//实现了在函数内，把外部变量（list)的值改变
+		free(p); //malloc的反函数
+	}
+	else
+	{
+		//先找到P指向的上一个节点
+		q = *head;
+		while (q->NEXT != p)
+			q = q->NEXT;
+		q->NEXT = p->NEXT;
+		free(p);
+	}
+	getchar(); getchar();
+}
+
+/* 排序 */
+void sortInfo(SSNLINK  head)
+{
+	//冒泡排序法
+	SSNLINK tail = head, p;
+	STUSCORE t;
+	//让tail指针指向链表结尾
+	while (tail->NEXT != NULL)
+		tail = tail->NEXT;
+	while (head->NEXT != tail)//控制冒泡的次数
+	{
+		p = head;
+		while (p->NEXT != tail)//每一次的循环比较
+		{
+			if (p->stu.stuID> p->NEXT->stu.stuID)
+			{
+				t = p->stu;
+				p->stu = p->NEXT->stu;
+				p->NEXT->stu = t;
+			}
+			p = p->NEXT;
+		}
+		if (p->stu.stuID> p->NEXT->stu.stuID)
+		{
+			t = p->stu;
+			p->stu = p->NEXT->stu;
+			p->NEXT->stu = t;
+		}
+		tail = p;//尾指针前移一个
+	}
+	printf("排序完成\n");
+	getchar(); getchar();
+}
+
+int main()
+{
+	SSNLINK list = NULL, node;//list是列表的头指针，node为单节点的指针
+	int choice;
+	while (1)
+	{
+		system("cls");
+		printf("*********学生成绩管理系统********\n");
+		printf("1.输入学生成绩信息\n");
+		printf("2.显示所有学生的成绩信息\n");
+		printf("3.按学号查询学生成绩信息\n");
+		printf("4.按学号修改学生成绩信息\n");
+		printf("5.按学号删除学生成绩信息\n");
+		printf("6.按学号排序学生成绩信息\n");
+		printf("*********************************\n");
+		printf("请输入您的选择:\n");
+		scanf_s("%d", &choice);
+		switch (choice)
+		{
+		case 1://添加学生信息
+			while (1)
+			{
+				node = addStuScoreNode();
+				if (node->stu.stuID == -1)
+					break;
+				list = addToList(&list, node);
+			}
+			break;
+		case 2:showAllInfo(list); break;
+		case 3:searchInfo(list); break;
+		case 4:modifyInfo(list); break;
+		case 5:	deleteInfo(&list); break;
+		case 6:sortInfo(list); break;
+		case -1:exit(0);
+		}
+	}
+}
+
